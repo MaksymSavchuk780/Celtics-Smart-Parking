@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ParkingSpotContract",
+  "description": "Єдиний JSON-контракт об'єкта паркомісця для синхронізації FastAPI бекенду, 2D-карти Figma/Web (Андрущенко) та плати ESP32 (Чабан)",
+  "type": "object",
+  "required": [
+    "id",
+    "spot_code",
+    "floor",
+    "sector",
+    "status",
+    "coordinates",
+    "led_indicator"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Унікальний числовий ID паркомісця в базі даних",
+      "example": 18
+    },
+    "spot_code": {
+      "type": "string",
+      "description": "Людиночитаний шифр місця для водія та табло",
+      "example": "A-18"
+    },
+    "floor": {
+      "type": "integer",
+      "description": "Номер поверху паркінгу ТЦ (-1, 1, 2)",
+      "example": 1
+    },
+    "sector": {
+      "type": "string",
+      "description": "Літера сектора",
+      "example": "A"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["free", "occupied", "reserved"],
+      "description": "Поточний логічний стан паркомісця",
+      "example": "reserved"
+    },
+    "coordinates": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "X координата слота на SVG сітці 2D-карти ТЦ",
+          "example": 420.5
+        },
+        "y": {
+          "type": "number",
+          "description": "Y координата слота на SVG сітці 2D-карти ТЦ",
+          "example": 185.0
+        }
+      }
+    },
+    "led_indicator": {
+      "type": "object",
+      "required": ["color", "hex_color", "mode"],
+      "properties": {
+        "color": {
+          "type": "string",
+          "enum": ["green", "red", "blue", "blink_red"],
+          "description": "Колір фізичного RGB-світлодіода над місцем",
+          "example": "blue"
+        },
+        "hex_color": {
+          "type": "string",
+          "description": "HEX-код для відтворення на вебкарті",
+          "example": "#3B82F6"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["steady", "blinking"],
+          "example": "steady"
+        }
+      }
+    },
+    "current_session": {
+      "type": ["object", "null"],
+      "description": "Інформація про поточну сесію паркування (якщо місце зайняте)",
+      "properties": {
+        "ticket_uid": { "type": "string", "example": "TCK-8049" },
+        "plate_number": { "type": "string", "example": "KA 7788 OO" },
+        "entry_time": { "type": "string", "format": "date-time", "example": "2026-11-05T19:24:00Z" },
+        "fine_amount": { "type": "number", "example": 500.0 }
+      }
+    },
+    "active_reservation": {
+      "type": ["object", "null"],
+      "description": "Інформація про активну бронь на цьому слоті",
+      "properties": {
+        "reservation_id": { "type": "integer", "example": 12 },
+        "plate_number": { "type": "string", "example": "BC 1234 AB" },
+        "reserved_from": { "type": "string", "format": "date-time", "example": "2026-11-05T19:00:00Z" },
+        "reserved_until": { "type": "string", "format": "date-time", "example": "2026-11-05T21:00:00Z" }
+      }
+    },
+    "last_telemetry_at": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-11-05T19:24:12Z"
+    }
+  }
+}

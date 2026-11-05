@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SensorTelemetryContract",
+  "description": "Формат HTTP POST пакету телеметрії від плати ESP32 (Чабан) до бекенду FastAPI (Савчук) та зворотна інструкція керування індикацією",
+  "request": {
+    "endpoint": "POST /api/v1/telemetry/sensor-event",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Device-Token": "secret-esp32-token"
+    },
+    "payload": {
+      "type": "object",
+      "required": ["device_id", "spot_code", "distance_cm", "is_occupied", "raw_state", "timestamp"],
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "description": "MAC-адреса або унікальний ідентифікатор контролера ESP32",
+          "example": "ESP32_NODE_A01"
+        },
+        "spot_code": {
+          "type": "string",
+          "description": "Прив'язаний номер паркомісця",
+          "example": "A-01"
+        },
+        "distance_cm": {
+          "type": "number",
+          "description": "Виміряна ультразвуковим датчиком відстань у сантиметрах",
+          "example": 7.8
+        },
+        "detection_threshold_cm": {
+          "type": "number",
+          "description": "Поріг спрацювання датчика на перешкоду",
+          "default": 10.0,
+          "example": 10.0
+        },
+        "raw_state": {
+          "type": "integer",
+          "enum": [0, 1],
+          "description": "Бінарний стан (0 - вільно, 1 - машина присутня)",
+          "example": 1
+        },
+        "is_occupied": {
+          "type": "boolean",
+          "description": "Логічний прапорець зайнятості (distance_cm < 10 см)",
+          "example": true
+        },
+        "uptime_sec": {
+          "type": "integer",
+          "description": "Час безперервної роботи плати ESP32 у секундах",
+          "example": 3600
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix timestamp моменту вимірювання",
+          "example": 1793910600
+        }
+      }
+    }
+  },
+  "response": {
+    "status_200": {
+      "type": "object",
+      "required": ["status", "spot_code", "command", "violation_detected"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["success", "warning", "error"],
+          "example": "success"
+        },
+        "spot_code": {
+          "type": "string",
+          "example": "A-01"
+        },
+        "command": {
+          "type": "object",
+          "required": ["led_color", "rgb_values"],
+          "properties": {
+            "led_color": {
+              "type": "string",
+              "enum": ["green", "red", "blue", "blink_red"],
+              "example": "red"
+            },
+            "rgb_values": {
+              "type": "object",
+              "properties": {
+                "r": { "type": "integer", "example": 255 },
+                "g": { "type": "integer", "example": 0 },
+                "b": { "type": "integer", "example": 0 }
+              }
+            }
+          }
+        },
+        "violation_detected": {
+          "type": "boolean",
+          "example": false
+        },
+        "fine_amount": {
+          "type": "number",
+          "example": 0.0
+        },
+        "message": {
+          "type": "string",
+          "example": "Slot occupied normally. LED set to RED."
+        }
+      }
+    }
+  }
+}

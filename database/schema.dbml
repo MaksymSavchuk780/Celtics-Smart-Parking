@@ -1,0 +1,64 @@
+// ============================================================
+// Celtics Smart Parking System — Database Schema (DBML)
+// Project: Proof of Concept (PoC) • Team "Celtics"
+// Author: Савчук (Backend / Database Engineer)
+// Website: https://dbdiagram.io
+// ============================================================
+
+Table parking_spots {
+  id integer [pk, increment, note: 'Унікальний ідентифікатор паркомісця']
+  spot_code varchar(10) [unique, not null, note: 'Людиночитаний код місця: наприклад, "A-01", "A-15", "B-04"']
+  floor integer [not null, note: 'Поверх паркінгу: -1 (підземний), 1, 2']
+  sector varchar(5) [not null, note: 'Сектор паркінгу: "A", "B", "C"']
+  status varchar(20) [not null, default: 'free', note: 'Поточний статус: free (вільно), occupied (зайнято), reserved (заброньовано)']
+  x_coord decimal(8,2) [not null, note: 'X-координата на 2D-карті ТЦ (для SVG/Canvas сітки)']
+  y_coord decimal(8,2) [not null, note: 'Y-координата на 2D-карті ТЦ (для SVG/Canvas сітки)']
+  created_at timestamp [default: `now()`, note: 'Час створення слота']
+  updated_at timestamp [note: 'Час останнього оновлення телеметрії']
+
+  Note: 'Таблиця фізичних паркомісць паркінгу ТЦ з координатами для 2D-карти'
+}
+
+Table tickets_sessions {
+  id integer [pk, increment, note: 'Унікальний ID паркувальної сесії']
+  ticket_uid varchar(30) [unique, not null, note: 'Унікальний штрихкод/номер талона (напр. "TCK-8041", "TCK-8049")']
+  plate_number varchar(15) [not null, note: 'Розпізнаний камерою ANPR держномер автомобіля (напр. "BC1234AB")']
+  entry_time timestamp [not null, default: `now()`, note: 'Час проїзду через в\'їзний шлагбаум']
+  spot_id integer [ref: > parking_spots.id, null, note: 'ID паркомісця, до якого прив\'язалося авто після спрацювання датчика']
+  fine_amount decimal(10,2) [not null, default: 0.00, note: 'Сума штрафу (напр. +500.00 грн за несанкціоноване зайняття чужої броні)']
+  is_active boolean [not null, default: true, note: 'Чи є сесія відкритою (true - знаходиться на паркінгу, false - виїхав)']
+  exit_time timestamp [null, note: 'Час оплати та виїзду через шлагбаум']
+
+  Note: 'Облік в\'їздів, зчитаних номерів ANPR, виданих талонів та нарахованих штрафів'
+}
+
+Table reservations {
+  id integer [pk, increment, note: 'Унікальний ідентифікатор веб-бронювання']
+  plate_number varchar(15) [not null, note: 'Держномер авто, для якого заброньовано слот (напр. "BC1234AB")']
+  spot_id integer [ref: > parking_spots.id, not null, note: 'Зарезервоване паркомісце']
+  reserved_from timestamp [not null, note: 'Початок запланованого інтервалу стоянки']
+  reserved_until timestamp [not null, note: 'Кінець запланованого інтервалу стоянки']
+  status varchar(20) [not null, default: 'active', note: 'Статус: active (активне), completed (успішно запаркований), cancelled (скасовано), violated (порушено чужим авто)']
+  created_at timestamp [default: `now()`, note: 'Час створення бронювання на сайті ТЦ']
+
+  Note: 'Попередні бронювання паркомісць відвідувачами з сайту ТЦ'
+}
+
+Table violations_log {
+  id integer [pk, increment, note: 'Унікальний ідентифікатор інциденту порушення']
+  ticket_id integer [ref: > tickets_sessions.id, null, note: 'ID сесії талона порушника (якщо ідентифіковано)']
+  spot_id integer [ref: > parking_spots.id, not null, note: 'Паркомісце, на якому зафіксовано несанкціоноване зайняття']
+  timestamp timestamp [not null, default: `now()`, note: 'Точний час фіксації порушення ультразвуковим датчиком']
+  fine_reason varchar(255) [not null, note: 'Текстовий опис інциденту (напр. "Unauthorized parking on reserved spot A-18")']
+  resolved boolean [not null, default: false, note: 'Чи опрацьовано інцидент диспетчером/адміністратором паркінгу']
+
+  Note: 'Журнал аудит-логів порушень правил паркування для B2B-дашборду'
+}
+
+// ------------------------------------------------------------
+// ЗВ'ЯЗКИ МІЖ ТАБЛИЦЯМИ (Relationships):
+// ------------------------------------------------------------
+// 1) parking_spots 1 --- * tickets_sessions (Одне місце зберігає історію багатьох паркувальних сесій)
+// 2) parking_spots 1 --- * reservations (Одне місце може резервуватися на різні часові слоти)
+// 3) parking_spots 1 --- * violations_log (На одному місці можуть фіксуватися порушення)
+// 4) tickets_sessions 1 --- * violations_log (Сесія водія-порушника пов'язана з записом про штраф)
