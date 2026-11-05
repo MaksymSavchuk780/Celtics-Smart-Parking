@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celtics Smart Parking — B2B Дашборд директора ТЦ</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <h1>📊 Celtics Smart Parking <span>• B2B Панель директора ТЦ</span></h1>
+    <div>
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">2D-карта водія</a>
+      <a href="led_board.html" style="color: white; text-decoration: none;">LED-табло</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Live KPI Summary -->
+    <div class="grid-kpi">
+      <div class="kpi-card">
+        <h3>Загальна заповненість</h3>
+        <div class="value" style="color: #F59E0B;">76%</div>
+        <small style="color: var(--text-muted);">Порог тривоги: 90%</small>
+      </div>
+      <div class="kpi-card" style="border-left-color: var(--status-free);">
+        <h3>Вільних місць</h3>
+        <div class="value">12</div>
+        <small style="color: var(--text-muted);">з 50 слотів</small>
+      </div>
+      <div class="kpi-card" style="border-left-color: var(--status-reserved);">
+        <h3>Активні броні</h3>
+        <div class="value">8</div>
+        <small style="color: var(--text-muted);">веб-бронювання</small>
+      </div>
+      <div class="kpi-card" style="border-left-color: var(--status-occupied);">
+        <h3>Штрафи за порушення</h3>
+        <div class="value" style="color: var(--status-occupied);">+500 ₴</div>
+        <small style="color: var(--text-muted);">1 порушення чужої броні</small>
+      </div>
+    </div>
+
+    <!-- Alert Box: Unauthorized Parking -->
+    <div class="card" style="border: 2px solid #EF4444; background: #FEF2F2;">
+      <h3 style="color: #991B1B; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+        ⚠️ АЛЕРТ: UNAUTHORIZED PARKING (МІСЦЕ A-18)
+      </h3>
+      <p style="color: #7F1D1D; margin: 0;">
+        Датчик на заброньованому місці A-18 зафіксував авто без заїзду власника броні!
+        <br>➔ <b>Талон порушника:</b> #TCK-8049 (держномер: KA 7788 OO) — <b>нараховано штраф +500 грн до оплати на виїзді</b>.
+        <br>➔ Бронь клієнта BC 1234 AB автоматично перенесено на сусіднє вільне місце A-19.
+      </p>
+    </div>
+
+    <!-- Active Violations & Tickets Table -->
+    <div class="card">
+      <h2>📋 Журнал сесій та штрафів на талонах (US 2.5)</h2>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 1rem;">
+        <thead>
+          <tr style="background: #F1F5F9; border-bottom: 2px solid #CBD5E1;">
+            <th style="padding: 10px;">ID Талона</th>
+            <th style="padding: 10px;">Номер авто (ANPR)</th>
+            <th style="padding: 10px;">Зайняте місце</th>
+            <th style="padding: 10px;">Статус перевірки</th>
+            <th style="padding: 10px;">Штраф</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid #E2E8F0;">
+            <td style="padding: 10px;"><b>TCK-8041</b></td>
+            <td style="padding: 10px;">BC 1234 AB</td>
+            <td style="padding: 10px;">Сектор А, A-15</td>
+            <td style="padding: 10px;"><span style="color: var(--status-free); font-weight: 600;">● Підтверджено бронь</span></td>
+            <td style="padding: 10px;">0 ₴</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #E2E8F0; background: #FFF1F2;">
+            <td style="padding: 10px;"><b>TCK-8049</b></td>
+            <td style="padding: 10px;">KA 7788 OO</td>
+            <td style="padding: 10px;">Сектор А, A-18</td>
+            <td style="padding: 10px;"><span style="color: var(--status-occupied); font-weight: 600;">● Порушення (Чужа бронь)</span></td>
+            <td style="padding: 10px; color: #DC2626; font-weight: 700;">+500 ₴</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px;"><b>TCK-8052</b></td>
+            <td style="padding: 10px;">LV 4510 CX</td>
+            <td style="padding: 10px;">Сектор Б, B-04</td>
+            <td style="padding: 10px;"><span style="color: var(--text-muted);">● Стандартне паркування</span></td>
+            <td style="padding: 10px;">0 ₴</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

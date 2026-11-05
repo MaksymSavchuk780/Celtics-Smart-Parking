@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celtics Smart Parking — В'їзне LED-табло</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="background: #0B0F19; color: white;">
+  <div class="navbar" style="background: #042F2E;">
+    <h1>🚥 В'їзне світлодіодне LED-табло поверхової наявності місць</h1>
+    <div>
+      <a href="index.html" style="color: white; margin-right: 15px; text-decoration: none;">2D-карта водія</a>
+      <a href="dashboard.html" style="color: white; text-decoration: none;">B2B Дашборд</a>
+    </div>
+  </div>
+
+  <div class="container" style="text-align: center;">
+    <h2 style="color: #94A3B8; margin-top: 2rem;">Світлодіодне табло перед шлагбаумом ТЦ</h2>
+    
+    <div class="led-board-wrapper">
+      <div style="font-size: 1rem; color: #64748B; margin-bottom: 1.5rem; border-bottom: 1px dashed #334155; padding-bottom: 0.5rem;">
+        CELTICS SMART PARKING • REAL-TIME LED
+      </div>
+
+      <div class="led-row led-full" id="floorMinus1">
+        <span>ПОВЕРХ -1:</span>
+        <span>0 [FULL] 🚫</span>
+      </div>
+
+      <div class="led-row" id="floor1">
+        <span>ПОВЕРХ 1:</span>
+        <span style="color: #22C55E;">14 ВІЛЬНО ➔</span>
+      </div>
+
+      <div class="led-row" id="floor2">
+        <span>ПОВЕРХ 2:</span>
+        <span style="color: #22C55E;">38 ВІЛЬНО ⬆</span>
+      </div>
+    </div>
+
+    <p style="color: #64748B; max-width: 500px; margin: 1rem auto; font-size: 0.9rem;">
+      * При 100% заповненості незаброньованих місць поверх автоматично перемикається в статус <b>FULL</b>, що відсікає заїзд зайвого трафіку.
+    </p>
+  </div>
+</body>
+</html>

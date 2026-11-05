@@ -1,0 +1,179 @@
+/* Celtics Smart Parking System — Design System & Tokens
+   Author: Андрущенко (UI/UX / Frontend Engineer)
+   Team: Celtics PoC
+*/
+
+:root {
+  /* Celtics Brand Palette */
+  --celtics-primary: #064E3B;
+  --celtics-emerald: #10B981;
+  --celtics-dark: #0F172A;
+  
+  /* Parking Status Colors */
+  --status-free: #22C55E;       /* Зелений — вільно */
+  --status-occupied: #EF4444;   /* Червоний — зайнято */
+  --status-reserved: #3B82F6;   /* Синій — заброньовано */
+  --status-warning: #F59E0B;    /* Жовтий — увага */
+  
+  /* Backgrounds & Text */
+  --bg-light: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-main);
+}
+
+.navbar {
+  background: var(--celtics-primary);
+  color: #FFFFFF;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+.grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 10px;
+  border-left: 5px solid var(--celtics-emerald);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.kpi-card h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.kpi-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--celtics-dark);
+  margin-top: 0.5rem;
+}
+
+/* 2D Parking Map Grid */
+.parking-canvas-wrapper {
+  background: #0F172A;
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.parking-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 12px;
+  min-width: 800px;
+}
+
+.spot-box {
+  border: 2px solid #334155;
+  border-radius: 8px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.spot-box.free {
+  border-color: var(--status-free);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.spot-box.occupied {
+  border-color: var(--status-occupied);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.spot-box.reserved {
+  border-color: var(--status-reserved);
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.spot-box.highlight {
+  animation: pulse 1s infinite alternate;
+  box-shadow: 0 0 15px #F59E0B;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* LED Matrix Board Display */
+.led-board-wrapper {
+  background: #000000;
+  border: 8px solid #1E293B;
+  border-radius: 16px;
+  padding: 2rem;
+  font-family: 'Courier New', Courier, monospace;
+  color: #22C55E;
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.led-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.led-full {
+  color: #EF4444 !important;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}

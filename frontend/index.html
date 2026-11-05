@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celtics Smart Parking — 2D-карта водія (Zero-App)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <h1>🚗 Celtics Smart Parking <span>• 2D Навігація</span></h1>
+    <div>
+      <a href="led_board.html" style="color: white; margin-right: 15px; text-decoration: none;">LED-табло</a>
+      <a href="dashboard.html" style="color: white; text-decoration: none;">B2B Дашборд</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>🔍 Знайти моє авто («Find My Car»)</h2>
+      <p style="color: var(--text-muted); margin-top: -0.5rem;">Введіть номер автомобіля або номер паркувального талона:</p>
+      <div style="display: flex; gap: 10px; max-width: 500px;">
+        <input type="text" id="carSearchInput" placeholder="Наприклад: BC 1234 AB або TCK-8041" style="flex: 1; padding: 10px 14px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 1rem;">
+        <button onclick="findCar()" style="background: var(--celtics-primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Шукати</button>
+      </div>
+      <div id="searchResult" style="margin-top: 10px; font-weight: 600;"></div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>🗺️ Інтерактивна 2D-карта паркінгу (Поверх 1)</h2>
+        <div style="display: flex; gap: 15px; font-size: 0.9rem;">
+          <span><b style="color: var(--status-free);">●</b> Вільно</span>
+          <span><b style="color: var(--status-occupied);">●</b> Зайнято</span>
+          <span><b style="color: var(--status-reserved);">●</b> Заброньовано</span>
+        </div>
+      </div>
+
+      <div class="parking-canvas-wrapper">
+        <div class="parking-grid" id="parkingGrid">
+          <!-- Генерується через js/map.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/map.js"></script>
+</body>
+</html>
