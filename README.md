@@ -6,16 +6,16 @@
 ---
 
 ## 🎯 Суть та мета проєкту
-Розробка цілісного концепту, схеми реляційної бази даних, специфікації REST API, Python-симулятора трафіку, апаратного вузла на ESP32 та клікабельного фронтенд-прототипу для захисту перед комісією.
+Розробка цілісного концепту, схеми реляційної бази даних, специфікації REST API, Python-симулятора трафіку, апаратного вузла на ESP32 та клікабельного фронтенд-прототипу.
 
 Головна ідея: поєднання зовнішньої світлодіодної навігації (в'їзне LED-табло) із миттєвим веб-сервісом за QR-кодом (Zero-App без завантаження додатків) та попереднім бронюванням паркомісць на сайті ТЦ з автоматичним штрафуванням за порушення броні (+500 грн).
 
 ---
 
 ## 👥 Команда та ролі
-* **Савчук** — Backend / Database Engineer (FastAPI, SQLAlchemy, PostgreSQL/SQLite, Swagger, REST API)
-* **Чабан** — IoT / Hardware Engineer (ESP32, HC-SR04, RGB LED, прошивка C++/MicroPython, Wokwi)
-* **Андрущенко** — UI/UX / Frontend Engineer (Figma, 2D-карта паркінгу, LED-табло, B2B-
+* **Савчук Максим** — Backend / Database Engineer (FastAPI, SQLAlchemy, PostgreSQL/SQLite, Swagger, REST API)
+* **Чабан Назар** — IoT / Hardware Engineer (ESP32, HC-SR04, RGB LED, прошивка C++/MicroPython, Wokwi)
+* **Андрущенко Руслан** — UI/UX / Frontend Engineer (Figma, 2D-карта паркінгу, LED-табло, B2B-
 ---
 
 
