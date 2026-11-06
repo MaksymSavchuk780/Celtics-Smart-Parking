@@ -1,4 +1,5 @@
-﻿fastapi
-uvicorn
+flask
+flask-cors
 sqlalchemy
 pydantic
+python-dotenv

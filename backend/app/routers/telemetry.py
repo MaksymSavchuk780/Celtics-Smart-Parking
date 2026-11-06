@@ -1,4 +1,8 @@
-# TODO (Савчук): Роутер POST /api/v1/telemetry/sensor-event — прийом сигналу датчика ESP32, перевірка броні, нарахування штрафу
-from fastapi import APIRouter
+# -*- coding: utf-8 -*-
+"""
+Роутер телеметрії датчиків ESP32: POST /api/v1/telemetry/sensor-event
+"""
+from flask import Blueprint, jsonify, request
 
-router = APIRouter(prefix="/api/v1/telemetry", tags=["IoT Telemetry"])
+# TODO (Савчук): Прийом телеметрії датчиків, оновлення статусу та зворотне керування LED (blink_red)
+telemetry_bp = Blueprint("telemetry", __name__, url_prefix="/api/v1/telemetry")

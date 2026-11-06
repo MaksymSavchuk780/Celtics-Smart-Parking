@@ -1,4 +1,8 @@
-# TODO (Савчук): Роутер POST /api/v1/anpr/entry — фіксація держномера на шлагбаумі та видача талона (Ticket ID)
-from fastapi import APIRouter
+# -*- coding: utf-8 -*-
+"""
+Роутер шлагбаума та ANPR: POST /api/v1/anpr/entry
+"""
+from flask import Blueprint, jsonify, request
 
-router = APIRouter(prefix="/api/v1/anpr", tags=["ANPR Barrier"])
+# TODO (Савчук): Емуляція в'їзду через шлагбаум, генерація талона TCK-XXXX та облік штрафів
+anpr_bp = Blueprint("anpr", __name__, url_prefix="/api/v1/anpr")

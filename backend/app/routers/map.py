@@ -1,4 +1,8 @@
-# TODO (Савчук): Роутер GET /api/v1/map — видача карти всіх слотів для 2D-карти та табло
-from fastapi import APIRouter
+# -*- coding: utf-8 -*-
+"""
+Роутер 2D-карти та табло: GET /api/v1/map
+"""
+from flask import Blueprint, jsonify, request
 
-router = APIRouter(prefix="/api/v1/map", tags=["2D Map & Spots"])
+# TODO (Савчук): Реалізувати ендпоінт GET /api/v1/map (стан 50 слотів і поверхова статистика)
+map_bp = Blueprint("map", __name__, url_prefix="/api/v1/map")

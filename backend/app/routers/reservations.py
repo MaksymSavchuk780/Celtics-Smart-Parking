@@ -1,4 +1,8 @@
-# TODO (Савчук): Роутер POST /api/v1/reservations — онлайн-бронювання слота зі зміною на status: reserved
-from fastapi import APIRouter
+# -*- coding: utf-8 -*-
+"""
+Роутер веб-бронювання: POST /api/v1/reservations
+"""
+from flask import Blueprint, jsonify, request
 
-router = APIRouter(prefix="/api/v1/reservations", tags=["Reservations"])
+# TODO (Савчук): Реалізувати ендпоінти створення та перевірки броні
+reservations_bp = Blueprint("reservations", __name__, url_prefix="/api/v1/reservations")
