@@ -24,7 +24,10 @@ from sqlalchemy.orm import relationship
 try:
     from backend.app.database import Base
 except ImportError:
-    from app.database import Base
+    try:
+        from app.database import Base
+    except ImportError:
+        from database import Base
 
 
 def utc_now():

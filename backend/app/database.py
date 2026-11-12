@@ -5,13 +5,19 @@ Celtics Smart Parking System — Database Engine
 """
 
 import os
+import sys
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Автоматичне визначення шляху до бази даних parking.db у корені проєкту
-BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
-PROJECT_ROOT = BASE_DIR.parent                   # Celtics-Smart-Parking/
+APP_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = APP_DIR.parent
+PROJECT_ROOT = BACKEND_DIR.parent
+
+for p in (PROJECT_ROOT, BACKEND_DIR, APP_DIR):
+    if str(p) not in sys.path:
+        sys.path.insert(0, str(p))
+
 DEFAULT_DB_FILE = PROJECT_ROOT / "parking.db"
 
 # Підтримка змінної оточення DATABASE_URL (зручно для PostgreSQL або локального SQLite)
@@ -42,11 +48,23 @@ def get_db():
 
 def init_db():
     """Створення всіх таблиць у базі даних згідно з ORM-моделями"""
-    import backend.app.models  # noqa: F401
+    try:
+        from backend.app import models  # noqa: F401
+    except ImportError:
+        try:
+            from app import models  # noqa: F401
+        except ImportError:
+            import models  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
 
 def drop_db():
     """Очищення всіх таблиць бази даних"""
-    import backend.app.models  # noqa: F401
+    try:
+        from backend.app import models  # noqa: F401
+    except ImportError:
+        try:
+            from app import models  # noqa: F401
+        except ImportError:
+            import models  # noqa: F401
     Base.metadata.drop_all(bind=engine)
