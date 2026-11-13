@@ -12,3 +12,6 @@ venv/
 
 node_modules/
 dist/
+
+# Local firmware secrets
+hardware/config.h
