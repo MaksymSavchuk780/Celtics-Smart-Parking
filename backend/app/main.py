@@ -29,6 +29,14 @@ except ImportError:
     except ImportError:
         from database import init_db
 
+try:
+    from backend.app.routers.map import router as map_router
+except ImportError:
+    try:
+        from app.routers.map import router as map_router
+    except ImportError:
+        from routers.map import router as map_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +62,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Підключення роутерів API v1
+app.include_router(map_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Health"])

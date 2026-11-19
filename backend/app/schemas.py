@@ -66,15 +66,16 @@ class ActiveReservation(BaseModel):
 
 
 class ParkingSpotResponse(BaseModel):
-    id: int
-    spot_code: str
-    floor: int
-    sector: str
-    status: Literal["free", "occupied", "reserved"]
-    coordinates: Coordinates
-    led_indicator: LEDIndicator
-    current_session: Optional[CurrentParkingSession] = None
-    active_reservation: Optional[ActiveReservation] = None
+    id: int = Field(..., description="Унікальний числовий ID паркомісця в БД", examples=[1])
+    spot_code: str = Field(..., description='Людиночитаний шифр місця для водія та табло, напр. "A-01"', examples=["A-01"])
+    floor: int = Field(..., description="Номер поверху паркінгу (-1, 1, 2)", examples=[1])
+    sector: str = Field(..., description='Літера сектора ("A", "B", "C")', examples=["A"])
+    status: Literal["free", "occupied", "reserved"] = Field(..., description="Поточний логічний стан паркомісця", examples=["free"])
+    coordinates: Coordinates = Field(..., description="Координати слота на SVG сітці 2D-карти ТЦ")
+    led_indicator: LEDIndicator = Field(..., description="Стан та колір фізичного RGB-світлодіода над місцем")
+    current_session: Optional[CurrentParkingSession] = Field(None, description="Інформація про поточну активну сесію паркування")
+    active_reservation: Optional[ActiveReservation] = Field(None, description="Інформація про активну бронь на цьому слоті")
+    last_telemetry_at: Optional[datetime] = Field(None, description="Час останнього сигналу від IoT-датчика або оновлення статусу", examples=["2026-11-19T20:30:00Z"])
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -165,3 +166,46 @@ class ViolationLogResponse(BaseModel):
     resolved: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ============================================================
+# 7. СХЕМИ 2D-КАРТИ ТА В'ЇЗНОГО LED-ТАБЛО (US 1.1, US 1.2)
+# ============================================================
+
+class SpotMapItem(ParkingSpotResponse):
+    """Слот паркомісця для 2D-карти навігатора водія (сумісний із контрактом parking_spot_contract.json)"""
+    pass
+
+
+class FloorSummary(BaseModel):
+    """Поверхова агрегація стану паркомісць для в'їзного LED-табло"""
+    floor: int = Field(..., description="Номер поверху паркінгу (-1, 1, 2)", examples=[1])
+    total_spots: int = Field(..., description="Загальна кількість паркомісць на цьому поверсі", examples=[25])
+    free_spots: int = Field(..., description="Кількість вільних місць (status == 'free')", examples=[18])
+    occupied_spots: int = Field(..., description="Кількість зайнятих місць (status == 'occupied')", examples=[5])
+    reserved_spots: int = Field(..., description="Кількість заброньованих місць (status == 'reserved')", examples=[2])
+    is_full: bool = Field(..., description="Прапорець повної заповненості поверху (True, якщо free_spots == 0)", examples=[False])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ParkingSummary(BaseModel):
+    """Загальне зведення завантаженості паркінгу ТЦ"""
+    total_spots: int = Field(..., description="Загальна кількість місць по всьому паркінгу", examples=[50])
+    free_spots: int = Field(..., description="Загальна кількість вільних місць на паркінгу", examples=[35])
+    occupied_spots: int = Field(..., description="Загальна кількість зайнятих місць", examples=[10])
+    reserved_spots: int = Field(..., description="Загальна кількість заброньованих місць", examples=[5])
+    is_parking_full: bool = Field(..., description="Чи заповнений весь паркінг повністю (free_spots == 0)", examples=[False])
+    recommended_sector: Optional[str] = Field(None, description="Сектор із найбільшою кількістю вільних місць (або null, якщо вільних немає)", examples=["A"])
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MapResponse(BaseModel):
+    """Повна відповідь ендпоінта GET /api/v1/map для 2D-карти та поверхового LED-табло"""
+    summary: ParkingSummary = Field(..., description="Загальне зведення лічильників паркінгу")
+    floors: List[FloorSummary] = Field(..., description="Агреговані показники по кожному поверху для LED-табло")
+    spots: List[SpotMapItem] = Field(..., description="Масив паркомісць із координатами для побудови 2D-карти")
+
+    model_config = ConfigDict(from_attributes=True)
+
