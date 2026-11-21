@@ -1,6 +1,5 @@
 # Celtics Smart Parking System 🚗🅿️
-
-> **Академічний проєкт (Proof of Concept) • Команда «Селтікс»**  
+• Команда «Селтікс»**  
 > Гібридна смарт-система навігації, веб-бронювання та аналітики для паркінгу ТЦ
 
 ---
@@ -17,9 +16,3 @@
 * **Чабан Назар** — IoT / Hardware Engineer (ESP32, HC-SR04, RGB LED, прошивка C++/MicroPython, Wokwi)
 * **Андрущенко Руслан** — UI/UX / Frontend Engineer (Figma, 2D-карта паркінгу, LED-табло, B2B-
 ---
-
-
-## 🚀 Швидкий старт для бекенду
-```bash
-pip install -r requirements.txt
-```
