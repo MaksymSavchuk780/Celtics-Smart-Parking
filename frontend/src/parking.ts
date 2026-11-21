@@ -1,4 +1,11 @@
 import { useSyncExternalStore } from "react";
+import {
+  cancelReservation,
+  createReservation,
+  getParkingMap,
+  sendSensorEvent,
+  type BackendMap,
+} from "./api";
 
 /* =====================================================================
    ParkFlow shared parking model — single source of truth for every tab
@@ -6,7 +13,7 @@ import { useSyncExternalStore } from "react";
    World units: 1 unit = 0.1 m.
    ===================================================================== */
 
-export type Status = "free" | "occupied" | "reserved";
+export type Status = "free" | "occupied" | "reserved" | "unavailable";
 export type FloorId = "P-1" | "P1" | "P2";
 export type Pt = { x: number; y: number };
 export type SpotDef = {
@@ -341,7 +348,7 @@ function seed(): ParkState {
     revenue,
     sessions: 1184,
     myTicket: null,
-    sim: true,
+    sim: false,
     intent: null,
   };
 }
@@ -355,7 +362,7 @@ function load(): ParkState | null {
     const s = JSON.parse(raw) as ParkState;
     if (s.v !== 2 || s.day !== isoDate(new Date()) || s.statuses.P1.length !== SPOTS_PER_FLOOR)
       return null;
-    return { ...s, intent: null };
+    return { ...s, sim: false, intent: null };
   } catch {
     return null;
   }
@@ -375,13 +382,193 @@ function set(fn: (s: ParkState) => ParkState) {
 }
 function subscribe(l: () => void) {
   listeners.add(l);
-  ensureSim();
+  // Local simulation is disabled for server-backed operation.
   return () => {
     listeners.delete(l);
   };
 }
 export const usePark = () => useSyncExternalStore(subscribe, () => state);
 export const getPark = () => state;
+
+let serverBacked = false;
+let serverLoading = false;
+let serverError: string | null = null;
+let serverSnapshot = { loading: false, error: null as string | null, serverBacked: false };
+const serverListeners = new Set<() => void>();
+const emitServerStatus = () => {
+  serverSnapshot = { loading: serverLoading, error: serverError, serverBacked };
+  serverListeners.forEach((listener) => listener());
+};
+
+export const useServerStatus = () =>
+  useSyncExternalStore(
+    (listener) => {
+      serverListeners.add(listener);
+      return () => serverListeners.delete(listener);
+    },
+    () => serverSnapshot,
+  );
+
+function floorIdForBackend(floor: number): FloorId {
+  if (floor === -1) return "P-1";
+  if (floor === 1) return "P1";
+  return "P2";
+}
+
+function backendSpotCode(floor: FloorId, idx: number): string | null {
+  if (floor === "P-1") return null;
+  const spot = SPOTS[idx];
+  if (!spot) return null;
+  const number = Number(spot.id.match(/\d+$/)?.[0]);
+  return Number.isInteger(number) ? `${spot.row}-${String(number).padStart(2, "0")}` : null;
+}
+
+function backendFloor(floor: FloorId): number {
+  return floor === "P-1" ? -1 : floor === "P1" ? 1 : 2;
+}
+
+async function setServerSpotStatus(floor: FloorId, idx: number, occupied: boolean) {
+  const spotCode = backendSpotCode(floor, idx);
+  if (!spotCode) return;
+  await sendSensorEvent({
+    device_id: "frontend-led-control",
+    spot_code: spotCode,
+    floor: backendFloor(floor),
+    distance_cm: occupied ? 5 : 50,
+    raw_state: occupied ? 1 : 0,
+    is_occupied: occupied,
+    timestamp: Math.floor(Date.now() / 1000),
+  });
+}
+
+export async function syncServerParking(): Promise<void> {
+  serverLoading = true;
+  serverError = null;
+  emitServerStatus();
+  try {
+    const map: BackendMap = await getParkingMap();
+    set((s) => {
+      const statuses = {
+        "P-1": SPOTS.map(() => "unavailable" as Status),
+        P1: SPOTS.map(() => "unavailable" as Status),
+        P2: SPOTS.map(() => "unavailable" as Status),
+      };
+      const bookings: Booking[] = [];
+      const cars: Car[] = [];
+
+      for (const spot of map.spots) {
+        const floor = floorIdForBackend(spot.floor);
+        const frontendId = spot.spot_code.replace("-", "").toUpperCase();
+        const idx = SPOT_INDEX[frontendId];
+        if (idx === undefined) continue;
+        statuses[floor][idx] = spot.current_session ? "occupied" : spot.status;
+
+        if (spot.current_session) {
+          cars.push({
+            plate: spot.current_session.plate_number,
+            ticket: spot.current_session.ticket_uid,
+            floor,
+            spotIdx: idx,
+            since: Date.parse(spot.current_session.entry_time) || Date.now(),
+          });
+        }
+        if (spot.active_reservation) {
+          if (!spot.current_session) statuses[floor][idx] = "reserved";
+          bookings.push({
+            code: `BK-${spot.active_reservation.reservation_id}`,
+            floor,
+            spotIdx: idx,
+            date: isoDate(new Date(spot.active_reservation.reserved_from)),
+            start: hhmm(new Date(spot.active_reservation.reserved_from).getTime()).replace(".", ":"),
+            hours: Math.max(
+              1,
+              Math.round(
+                (Date.parse(spot.active_reservation.reserved_until) -
+                  Date.parse(spot.active_reservation.reserved_from)) /
+                  3600000,
+              ),
+            ),
+            plate: formatPlate(spot.active_reservation.plate_number),
+            name: "Online reservation",
+            price: bookingPrice(idx, 1),
+            status: "active",
+            createdAt: Date.now(),
+            online: true,
+          });
+        }
+      }
+
+      const sameStatuses = FLOORS_ASC.every((floor) =>
+        statuses[floor].every((status, idx) => status === s.statuses[floor][idx]),
+      );
+      const sameCars =
+        cars.length === s.cars.length &&
+        cars.every((car, idx) => {
+          const previous = s.cars[idx];
+          return (
+            previous &&
+            car.ticket === previous.ticket &&
+            car.plate === previous.plate &&
+            car.floor === previous.floor &&
+            car.spotIdx === previous.spotIdx &&
+            car.since === previous.since
+          );
+        });
+      const sameBookings =
+        bookings.length === s.bookings.length &&
+        bookings.every((booking, idx) => {
+          const previous = s.bookings[idx];
+          return (
+            previous &&
+            booking.code === previous.code &&
+            booking.floor === previous.floor &&
+            booking.spotIdx === previous.spotIdx &&
+            booking.date === previous.date &&
+            booking.start === previous.start &&
+            booking.hours === previous.hours &&
+            booking.plate === previous.plate &&
+            booking.status === previous.status
+          );
+        });
+      if (sameStatuses && sameCars && sameBookings) return s;
+
+      return {
+        ...s,
+        statuses,
+        cars,
+        bookings,
+        sim: false,
+        events: [
+          {
+            id: s.seq + 1,
+            at: Date.now(),
+            kind: "system" as const,
+            text: `Дані паркінгу завантажено з сервера · ${map.summary.free_spots} вільних місць`,
+          },
+          ...s.events,
+        ].slice(0, 40),
+      };
+    });
+    serverBacked = true;
+  } catch (error) {
+    serverBacked = false;
+    serverError = error instanceof Error ? error.message : "Не вдалося отримати дані паркінгу";
+    set((s) => ({
+      ...s,
+      statuses: {
+        "P-1": SPOTS.map(() => "unavailable" as Status),
+        P1: SPOTS.map(() => "unavailable" as Status),
+        P2: SPOTS.map(() => "unavailable" as Status),
+      },
+      cars: [],
+      bookings: [],
+      sim: false,
+    }));
+  } finally {
+    serverLoading = false;
+    emitServerStatus();
+  }
+}
 
 const pushEv = (s: ParkState, kind: EventKind, text: string): EventItem[] =>
   [{ id: s.seq, at: Date.now(), kind, text }, ...s.events].slice(0, 40);
@@ -402,7 +589,22 @@ export function setNavLock(l: { floor: FloorId; idx: number } | null) {
 const locked = (f: FloorId, i: number) => navLock?.floor === f && navLock.idx === i;
 
 /* ---------- Actions ---------- */
-export function arrive(floor: FloorId, idx?: number, plate?: string) {
+export async function arrive(floor: FloorId, idx?: number, plate?: string) {
+  if (serverBacked) {
+    const free = state.statuses[floor]
+      .map((status, spotIdx) => (status === "free" && !locked(floor, spotIdx) ? spotIdx : -1))
+      .filter((spotIdx) => spotIdx >= 0);
+    const spotIdx = idx ?? free[0];
+    if (spotIdx === undefined) return;
+    try {
+      await setServerSpotStatus(floor, spotIdx, true);
+      await syncServerParking();
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : "Не вдалося оновити місце";
+      emitServerStatus();
+    }
+    return;
+  }
   set((s) => {
     const st = s.statuses[floor];
     const free = st
@@ -423,6 +625,7 @@ export function arrive(floor: FloorId, idx?: number, plate?: string) {
 }
 
 export function depart(ticket: string) {
+  if (serverBacked) return;
   set((s) => {
     const c = s.cars.find((x) => x.ticket === ticket);
     if (!c) return s;
@@ -443,7 +646,21 @@ export function depart(ticket: string) {
   });
 }
 
-export function departRandom(floor: FloorId, n = 1) {
+export async function departRandom(floor: FloorId, n = 1) {
+  if (serverBacked) {
+    const occupied = state.statuses[floor]
+      .map((status, spotIdx) => (status === "occupied" ? spotIdx : -1))
+      .filter((spotIdx) => spotIdx >= 0)
+      .slice(0, n);
+    try {
+      for (const spotIdx of occupied) await setServerSpotStatus(floor, spotIdx, false);
+      if (occupied.length) await syncServerParking();
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : "Не вдалося оновити місце";
+      emitServerStatus();
+    }
+    return;
+  }
   for (let k = 0; k < n; k++) {
     const pool = state.cars.filter(
       (c) => c.floor === floor && !c.mine && !DEMO_CARS.some((d) => d.ticket === c.ticket),
@@ -453,7 +670,22 @@ export function departRandom(floor: FloorId, n = 1) {
   }
 }
 
-export function fillAll() {
+export async function fillAll() {
+  if (serverBacked) {
+    const free = FLOORS_ASC.flatMap((floor) =>
+      state.statuses[floor]
+        .map((status, spotIdx) => (status === "free" ? { floor, spotIdx } : null))
+        .filter((spot): spot is { floor: FloorId; spotIdx: number } => spot !== null),
+    );
+    try {
+      for (const spot of free) await setServerSpotStatus(spot.floor, spot.spotIdx, true);
+      if (free.length) await syncServerParking();
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : "Не вдалося заповнити місця";
+      emitServerStatus();
+    }
+    return;
+  }
   set((s) => {
     let seq = s.seq;
     const cars = [...s.cars];
@@ -489,7 +721,22 @@ export function fillAll() {
   });
 }
 
-export function restoreFloors() {
+export async function restoreFloors() {
+  if (serverBacked) {
+    const occupied = FLOORS_ASC.flatMap((floor) =>
+      state.statuses[floor]
+        .map((status, spotIdx) => (status === "occupied" ? { floor, spotIdx } : null))
+        .filter((spot): spot is { floor: FloorId; spotIdx: number } => spot !== null),
+    );
+    try {
+      for (const spot of occupied) await setServerSpotStatus(spot.floor, spot.spotIdx, false);
+      if (occupied.length) await syncServerParking();
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : "Не вдалося відновити місця";
+      emitServerStatus();
+    }
+    return;
+  }
   FLOORS_ASC.forEach((f) => {
     const diff = INITIAL_FREE[f] - countOf(state.statuses[f], "free");
     if (diff > 0) departRandom(f, diff);
@@ -540,7 +787,67 @@ export function book(input: BookingInput): Booking | null {
   return created;
 }
 
-export function cancelBooking(code: string) {
+export async function bookFromServer(input: BookingInput): Promise<Booking> {
+  const spot = SPOTS[input.spotIdx];
+  const spotNumber = Number(spot.id.match(/\d+$/)?.[0] ?? input.spotIdx + 1);
+  const spotCode = `${spot.row}-${String(spotNumber).padStart(2, "0")}`;
+  const reservedFrom = new Date(`${input.date}T${input.start}:00`).toISOString();
+  const reservedUntil = new Date(
+    new Date(`${input.date}T${input.start}:00`).getTime() + input.hours * 3600000,
+  ).toISOString();
+
+  const reservation = await createReservation({
+    plate_number: formatPlate(input.plate),
+    spot_code: spotCode,
+    floor: backendFloor(input.floor),
+    reserved_from: reservedFrom,
+    reserved_until: reservedUntil,
+  });
+
+  const booking: Booking = {
+    ...input,
+    plate: formatPlate(input.plate),
+    code: `BK-${reservation.id}`,
+    price: bookingPrice(input.spotIdx, input.hours),
+    status: "active",
+    createdAt: Date.now(),
+    online: true,
+    byMe: true,
+  };
+  set((s) => ({
+    ...s,
+    seq: s.seq + 1,
+    statuses: withStatus(s, input.floor, input.spotIdx, "reserved"),
+    bookings: [booking, ...s.bookings],
+    revenue: addRev(s.revenue, booking.price),
+    events: pushEv(
+      s,
+      "book",
+      `Бронь ${booking.code} · ${booking.floor} · ${spot.id} · ${booking.plate}`,
+    ),
+  }));
+  return booking;
+}
+
+export async function cancelBooking(code: string): Promise<void> {
+  const booking = state.bookings.find((item) => item.code === code);
+  if (!booking || booking.status !== "active") return;
+  if (serverBacked) {
+    const reservationId = Number(code.replace(/^BK-/, ""));
+    if (!Number.isInteger(reservationId)) {
+      serverError = `Некоректний ідентифікатор бронювання: ${code}`;
+      emitServerStatus();
+      return;
+    }
+    try {
+      await cancelReservation(reservationId);
+      await syncServerParking();
+    } catch (error) {
+      serverError = error instanceof Error ? error.message : "Не вдалося скасувати бронювання";
+      emitServerStatus();
+    }
+    return;
+  }
   set((s) => {
     const b = s.bookings.find((x) => x.code === code);
     if (!b || b.status !== "active") return s;
@@ -664,7 +971,7 @@ export function setFineStatus(id: string, status: Fine["status"]) {
   });
 }
 
-export const setSim = (on: boolean) => set((s) => ({ ...s, sim: on }));
+export const setSim = (_on: boolean) => set((s) => ({ ...s, sim: false }));
 export const setIntent = (intent: Intent) => set((s) => ({ ...s, intent }));
 export function consumeIntent(): Intent {
   const it = state.intent;
@@ -672,6 +979,7 @@ export function consumeIntent(): Intent {
   return it;
 }
 export function resetDemo() {
+  if (serverBacked) return;
   set(() => seed());
 }
 

@@ -304,7 +304,9 @@ export default function Navigator() {
   const st = statuses[floor];
   const counts = useMemo(() => {
     const c = { free: 0, occupied: 0, reserved: 0 };
-    st.forEach((s) => c[s]++);
+    st.forEach((s) => {
+      if (s !== "unavailable") c[s]++;
+    });
     return c;
   }, [st]);
   const floorFree = (f: FloorId) => countOf(statuses[f], "free");

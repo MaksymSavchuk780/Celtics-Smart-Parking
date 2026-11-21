@@ -2,6 +2,7 @@ import { useState } from "react";
 import Home from "./Home";
 import Navigator from "./Navigator";
 import { Booking, Dashboard, LedBoard } from "./Modules";
+import { useServerStatus } from "./parking";
 
 type View = "home" | "map" | "led" | "booking" | "dashboard";
 
@@ -142,6 +143,7 @@ function AppHeader({ view, setView }: { view: View; setView: (v: View) => void }
 }
 
 export default function App() {
+  const server = useServerStatus();
   const initial = new URLSearchParams(window.location.search).get("view") as View;
   const [view, setView] = useState<View>(
     ["home", "map", "led", "booking", "dashboard"].includes(initial) ? initial : "home",
@@ -153,6 +155,13 @@ export default function App() {
   };
   return (
     <div className={`app view-${view}`}>
+      {(server.loading || server.error) && (
+        <div role={server.error ? "alert" : "status"} style={{ padding: "8px 16px", background: server.error ? "#fee2e2" : "#eff6ff", color: server.error ? "#991b1b" : "#1e3a8a" }}>
+          {server.loading
+            ? "Завантаження актуальних даних з сервера..."
+            : `Помилка сервера: ${server.error}. Дії бронювання та керування станом недоступні.`}
+        </div>
+      )}
       <AppHeader view={view} setView={changeView} />
       {view === "home" ? (
         <Home go={changeView} />

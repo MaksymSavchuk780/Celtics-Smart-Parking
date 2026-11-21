@@ -17,7 +17,8 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
-    CheckConstraint
+    CheckConstraint,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -43,7 +44,7 @@ class ParkingSpot(Base):
     __tablename__ = "parking_spots"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    spot_code = Column(String(10), unique=True, nullable=False, index=True, comment='Людиночитаний код місця, напр. "A-01"')
+    spot_code = Column(String(10), nullable=False, index=True, comment='Людиночитаний код місця, напр. "A-01"')
     floor = Column(Integer, nullable=False, index=True, comment="Номер поверху: -1, 1, 2")
     sector = Column(String(5), nullable=False, comment='Сектор паркінгу: "A", "B", "C"')
     status = Column(
@@ -59,6 +60,7 @@ class ParkingSpot(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('free', 'occupied', 'reserved')", name="check_parking_spot_status"),
+        UniqueConstraint("floor", "spot_code", name="uq_parking_spot_floor_code"),
     )
 
     # Зв'язки (Relationships)

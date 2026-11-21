@@ -213,6 +213,9 @@ i.pay {
   fill: #e8f0fe;
   stroke: #3b82f6;
 }
+.fm-spot.unavailable {
+  display: none;
+}
 .fm-spot.click {
   cursor: pointer;
 }

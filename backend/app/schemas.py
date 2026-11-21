@@ -109,6 +109,7 @@ class TicketSessionResponse(BaseModel):
 class ReservationCreate(BaseModel):
     plate_number: str = Field(..., description="Держномер авто клієнта")
     spot_code: str = Field(..., description="Код бажаного паркомісця")
+    floor: Optional[int] = Field(None, description="Поверх паркінгу (-1, 1, 2)")
     reserved_from: datetime = Field(..., description="Час початку броні")
     reserved_until: datetime = Field(..., description="Час закінчення броні")
 
@@ -117,6 +118,7 @@ class ReservationResponse(BaseModel):
     id: int
     plate_number: str
     spot_code: str
+    floor: int
     reserved_from: datetime
     reserved_until: datetime
     status: str
@@ -132,6 +134,7 @@ class ReservationResponse(BaseModel):
 class SensorTelemetryRequest(BaseModel):
     device_id: str = Field(..., description="MAC / ID контролера ESP32")
     spot_code: str = Field(..., description="Код паркомісця")
+    floor: Optional[int] = Field(None, description="Поверх паркінгу (-1, 1, 2)")
     distance_cm: float = Field(..., description="Виміряна відстань ультразвуком")
     raw_state: Literal[0, 1] = Field(..., description="0 - порожньо, 1 - авто присутнє")
     is_occupied: bool = Field(..., description="Логічний прапорець зайнятості")

@@ -9,7 +9,7 @@ import {
   addViolation,
   arrive,
   bestSector,
-  book,
+  bookFromServer,
   bookingPrice,
   cancelBooking,
   countOf,
@@ -277,7 +277,7 @@ export function LedBoard({ go }: { go: Go }) {
 
       <section className="led-controls md-led-controls">
         <div>
-          <b>Керування потоком (Mock-JSON → спільні дані)</b>
+          <b>Керування потоком (API/JSON → спільні дані)</b>
           <small>
             «Заїзд» займає випадкове вільне місце, «Виїзд» звільняє. Зміни одразу видно в навігаторі
             та дашборді.
@@ -501,18 +501,18 @@ export function Booking({ go }: { go: Go }) {
     setTried(true);
     if (!valid || spot === null) return;
     setPaying(true);
-    setTimeout(() => {
-      const b = book({ floor, spotIdx: spot, date, start, hours, plate, name: name.trim() });
+    void bookFromServer({ floor, spotIdx: spot, date, start, hours, plate, name: name.trim() })
+      .then((b) => {
       setPaying(false);
-      if (!b) {
-        setNotice("Місце щойно зайняли. Оберіть інше — оплату не списано.");
+      setDoneCode(b.code);
+      setStep(4);
+      })
+      .catch((error) => {
+        setPaying(false);
+        setNotice(error instanceof Error ? error.message : "Не вдалося створити бронювання.");
         setSpot(null);
         setStep(2);
-        return;
-      }
-      setDoneCode((b as BookingT).code);
-      setStep(4);
-    }, 1100);
+      });
   };
   const restart = () => {
     setStep(1);
