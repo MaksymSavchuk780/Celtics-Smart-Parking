@@ -344,3 +344,117 @@ def test_violation_blink_red_led(client, db_session):
 
     assert s0["led_indicator"]["color"] == "blink_red"
     assert s0["led_indicator"]["mode"] == "blinking"
+
+
+def test_create_reservation_updates_spot(client, db_session):
+    spot = ParkingSpot(
+        spot_code="A-01",
+        floor=1,
+        sector="A",
+        status="free",
+        x_coord=60.0,
+        y_coord=100.0,
+    )
+    db_session.add(spot)
+    db_session.commit()
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    response = client.post(
+        "/api/v1/reservations",
+        json={
+            "plate_number": "AA1234BB",
+            "spot_code": "A-01",
+            "reserved_from": now.isoformat(),
+            "reserved_until": (now + timedelta(hours=2)).isoformat(),
+        },
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["spot_code"] == "A-01"
+    assert data["status"] == "active"
+    db_session.expire_all()
+    assert db_session.query(ParkingSpot).filter_by(spot_code="A-01").one().status == "reserved"
+
+
+def test_reservation_rejects_occupied_and_overlap(client, db_session):
+    spot = ParkingSpot(
+        spot_code="B-02",
+        floor=1,
+        sector="B",
+        status="occupied",
+        x_coord=115.0,
+        y_coord=220.0,
+    )
+    db_session.add(spot)
+    db_session.commit()
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    payload = {
+        "plate_number": "BC1234AB",
+        "spot_code": "B-02",
+        "reserved_from": now.isoformat(),
+        "reserved_until": (now + timedelta(hours=1)).isoformat(),
+    }
+    response = client.post("/api/v1/reservations", json=payload)
+    assert response.status_code == 409
+
+
+def test_sensor_telemetry_updates_status(client, db_session):
+    spot = ParkingSpot(
+        spot_code="C-01",
+        floor=2,
+        sector="C",
+        status="free",
+        x_coord=60.0,
+        y_coord=340.0,
+    )
+    db_session.add(spot)
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/telemetry/sensor-event",
+        json={
+            "device_id": "ESP32-TEST",
+            "spot_code": "C-01",
+            "distance_cm": 12.5,
+            "raw_state": 1,
+            "is_occupied": True,
+            "timestamp": 1700000000,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["led_color"] == "red"
+    db_session.expire_all()
+    assert db_session.query(ParkingSpot).filter_by(spot_code="C-01").one().status == "occupied"
+
+
+def test_cancel_reservation_releases_spot(client, db_session):
+    spot = ParkingSpot(
+        spot_code="A-02",
+        floor=1,
+        sector="A",
+        status="reserved",
+        x_coord=115.0,
+        y_coord=100.0,
+    )
+    db_session.add(spot)
+    db_session.commit()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    reservation = Reservation(
+        plate_number="AA1234BB",
+        spot_id=spot.id,
+        reserved_from=now,
+        reserved_until=now + timedelta(hours=1),
+        status="active",
+    )
+    db_session.add(reservation)
+    db_session.commit()
+
+    response = client.delete(f"/api/v1/reservations/{reservation.id}")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "cancelled"
+    db_session.expire_all()
+    assert db_session.query(ParkingSpot).filter_by(spot_code="A-02").one().status == "free"

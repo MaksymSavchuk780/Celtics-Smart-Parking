@@ -400,6 +400,9 @@
 .spot.reserved path {
   stroke: #3b82f6;
 }
+.spot.unavailable {
+  display: none;
+}
 .walk-route {
   fill: none;
   stroke: #2877e8;

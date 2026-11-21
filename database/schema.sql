@@ -7,7 +7,7 @@
 -- 1. Таблиця фізичних паркомісць
 CREATE TABLE IF NOT EXISTS parking_spots (
     id SERIAL PRIMARY KEY,
-    spot_code VARCHAR(10) NOT NULL UNIQUE,
+    spot_code VARCHAR(10) NOT NULL,
     floor INTEGER NOT NULL,
     sector VARCHAR(5) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (status IN ('free', 'occupied', 'reserved')),
@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS parking_spots (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_parking_spot_floor_code
+    ON parking_spots(floor, spot_code);
 
 -- 2. Таблиця паркувальних сесій та талонів
 CREATE TABLE IF NOT EXISTS tickets_sessions (

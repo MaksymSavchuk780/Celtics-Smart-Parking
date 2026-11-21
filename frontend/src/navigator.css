@@ -59,6 +59,9 @@
   fill: #e8f0fe;
   stroke: #3b82f6;
 }
+.nv-spot.unavailable {
+  display: none;
+}
 .nv-spot.sel rect:first-child,
 .nv-spot.tgt rect:first-child {
   stroke-width: 4;
