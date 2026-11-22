@@ -29,12 +29,13 @@ With the MVP branch checked out, start the services from the repository root.
 docker compose up --build -d --wait
 ```
 
-- [Parking map](http://localhost:8443/)
+- [Home](http://localhost:8443/)
+- [Parking map](http://localhost:8443/?view=map)
 - [Entrance display](http://localhost:8443/?view=led)
 - [Occupancy dashboard](http://localhost:8443/?view=dashboard)
 - [Swagger UI](http://localhost:8000/docs)
 
-On first startup, SQLite is seeded with 294 demo spaces across three levels. To try an occupancy update without hardware, open the dashboard and expand **Simulate a sensor update**.
+On first startup, SQLite is seeded with 294 demo spaces across three levels. Use the navigator to preview a route to a free space or the lifts. To simulate an arrival or departure without hardware, use the **−** and **+** buttons on the entrance display.
 
 Run `docker compose down` to stop the services. SQLite data stays in the `parking-mvp-data` volume, which is separate from the original prototype volume.
 

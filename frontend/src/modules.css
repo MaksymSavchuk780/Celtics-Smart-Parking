@@ -1,0 +1,241 @@
+/* ---------- shared controls ---------- */
+.md-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.md-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 1px solid #ccd4dc;
+  background: #fff;
+  color: #1c2637;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.md-btn:hover {
+  border-color: #009fe3;
+  color: #007faf;
+}
+.md-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.md-btn.on {
+  background: #e8f9ee;
+  border-color: #86efac;
+  color: #15803d;
+}
+.md-btn.danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.md-btn.danger:hover {
+  background: #fecaca;
+}
+.md-btn.sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+  border-radius: 7px;
+}
+.md-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b91c1c;
+}
+.mono {
+  font-family: "Space Mono", monospace !important;
+}
+
+/* ---------- LED ---------- */
+.led-clock {
+  margin-left: auto;
+  float: right;
+  font-style: normal;
+  color: #9bffb5;
+  letter-spacing: 2px;
+}
+.full-mode .led-clock {
+  color: #ff9c9c;
+}
+.led-sector {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  color: #6db383;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+.light-arrow.down {
+  transform: rotate(90deg);
+}
+.led-x {
+  color: #ff5b5b;
+  font-size: 34px;
+  text-shadow: 0 0 14px #ef4444;
+}
+.md-led-controls {
+  flex-wrap: wrap;
+}
+.counter-control button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.md-ticker {
+  max-width: 980px;
+  margin: 12px auto 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 12px;
+  color: #45546a;
+}
+.md-ticker > b {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: #1c2637;
+}
+.md-ticker div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid #f0f3f5;
+}
+.md-ticker div span {
+  font-family: "Space Mono", monospace;
+  color: #8a95a3;
+  font-size: 11px;
+}
+.md-ticker p {
+  color: #8a95a3;
+}
+.md-ticker i,
+.md-events li i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: #94a3b8;
+}
+i.in {
+  background: #ef4444 !important;
+}
+i.out {
+  background: #22c55e !important;
+}
+/* ---------- Dashboard ---------- */
+.md-kpi-sm {
+  font-size: 28px !important;
+}
+.md-buckets {
+  display: flex;
+  gap: 6px;
+  height: 74px;
+  align-items: stretch;
+}
+.md-buckets div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.md-buckets i {
+  display: block;
+  background: #8b5cf6;
+  border-radius: 3px 3px 0 0;
+  min-height: 3px;
+  opacity: 0.8;
+}
+.md-buckets span {
+  font-size: 8px;
+  color: #8a95a3;
+  text-align: center;
+  white-space: nowrap;
+}
+.md-rev {
+  width: 100%;
+  height: 56px;
+  display: block;
+}
+.md-rev .ln {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.md-rev .area {
+  fill: #22c55e18;
+}
+.md-floor {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  width: calc(100% + 16px);
+  color: inherit;
+}
+.md-floor:hover {
+  background: #f3f8fb;
+}
+.md-events ul {
+  list-style: none;
+  margin-top: 12px;
+}
+.md-events li {
+  display: grid;
+  grid-template-columns: 10px 44px 78px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #f0f3f5;
+  font-size: 11px;
+}
+.md-events li .t {
+  font-family: "Space Mono", monospace;
+  color: #8a95a3;
+  font-size: 10px;
+}
+.md-events li .k {
+  font-weight: 800;
+  color: #45546a;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.md-events li .x {
+  color: #45546a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .md-events li {
+    grid-template-columns: 10px 40px 1fr;
+  }
+  .md-events li .k {
+    display: none;
+  }
+  .md-actions {
+    margin-top: 14px;
+  }
+  .led-clock {
+    display: none;
+  }
+}
