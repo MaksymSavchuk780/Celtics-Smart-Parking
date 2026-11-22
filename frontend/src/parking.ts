@@ -3,7 +3,6 @@ import { getParkingMap, sendSensorEvent, type BackendMap } from "./api";
 
 export type Status = "free" | "occupied" | "unavailable";
 export type FloorId = "P-1" | "P1" | "P2";
-export type Pt = { x: number; y: number };
 export type SpotDef = {
   id: string;
   row: string;
@@ -18,11 +17,8 @@ export type SpotDef = {
 export const FLOORS: FloorId[] = ["P2", "P1", "P-1"];
 export const FLOORS_ASC: FloorId[] = ["P-1", "P1", "P2"];
 export const AISLES_Y = [175, 375, 575];
-export const AISLE_NAMES = ["Проїзд A–B", "Проїзд C–D", "Проїзд E–F"];
-export const LEFT_X = 110;
-export const RIGHT_X = 890;
-export const COLS = Array.from({ length: 17 }, (_, i) => 190 + 40 * i);
-export const ROWS = [
+const COLS = Array.from({ length: 17 }, (_, i) => 190 + 40 * i);
+const ROWS = [
   { row: "A", y0: 75, aisle: 0 },
   { row: "B", y0: 205, aisle: 0 },
   { row: "C", y0: 275, aisle: 1 },
@@ -30,9 +26,6 @@ export const ROWS = [
   { row: "E", y0: 475, aisle: 2 },
   { row: "F", y0: 605, aisle: 2 },
 ];
-export const ENTRANCE: Pt = { x: LEFT_X, y: 730 };
-export const LIFT: Pt = { x: 500, y: 345 };
-export const LIFT_N: Pt = { x: 500, y: 205 }; // second lobby door (pedestrians only)
 
 export const SPOTS: SpotDef[] = [];
 ROWS.forEach((r) =>
@@ -227,10 +220,8 @@ export function syncServerParking(): Promise<void> {
   return mapRequest;
 }
 
-let navLock: { floor: FloorId; idx: number } | null = null;
 let intent: { floor: FloorId } | null = null;
 
-export function setNavLock(lock: typeof navLock) { navLock = lock; }
 export function setIntent(next: typeof intent) { intent = next; }
 export function consumeIntent() {
   const next = intent;
@@ -267,10 +258,9 @@ async function updateSpots(spots: { floor: FloorId; idx: number }[], occupied: b
 }
 
 function selectSpots(floors: FloorId[], status: Status) {
-  return floors.flatMap((floor) => state.statuses[floor].flatMap((current, idx) => {
-    const locked = navLock?.floor === floor && navLock.idx === idx;
-    return current === status && !locked ? [{ floor, idx }] : [];
-  }));
+  return floors.flatMap((floor) =>
+    state.statuses[floor].flatMap((current, idx) => current === status ? [{ floor, idx }] : []),
+  );
 }
 
 export const arrive = (floor: FloorId) => updateSpots(selectSpots([floor], "free").slice(0, 1), true);

@@ -43,13 +43,6 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
         <path d="M7 14h.01M17 14h.01M6 10h12" />
       </>
     ),
-    route: (
-      <>
-        <circle cx="5" cy="19" r="2" />
-        <circle cx="19" cy="5" r="2" />
-        <path d="M7 19h3a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3h1" />
-      </>
-    ),
     bell: (
       <>
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
@@ -93,7 +86,7 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
 function AppHeader({ view, setView }: { view: View; setView: (v: View) => void }) {
   const items: { id: View; label: string; icon: string }[] = [
     { id: "home", label: "Головна", icon: "building" },
-    { id: "map", label: "Навігація", icon: "map" },
+    { id: "map", label: "Карта", icon: "map" },
     { id: "led", label: "LED-табло", icon: "led" },
     { id: "dashboard", label: "B2B-аналітика", icon: "chart" },
   ];

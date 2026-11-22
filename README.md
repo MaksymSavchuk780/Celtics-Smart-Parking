@@ -35,7 +35,7 @@ docker compose up --build -d --wait
 - [Occupancy dashboard](http://localhost:8443/?view=dashboard)
 - [Swagger UI](http://localhost:8000/docs)
 
-On first startup, SQLite is seeded with 294 demo spaces across three levels. Use the navigator to preview a route to a free space or the lifts. To simulate an arrival or departure without hardware, use the **−** and **+** buttons on the entrance display.
+On first startup, SQLite is seeded with 294 demo spaces across three levels. The map shows the entire selected level. Select a space to see its current status. To simulate an arrival or departure without hardware, use the **−** and **+** buttons on the entrance display.
 
 Run `docker compose down` to stop the services. SQLite data stays in the `parking-mvp-data` volume, which is separate from the original prototype volume.
 

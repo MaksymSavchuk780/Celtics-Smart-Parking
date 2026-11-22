@@ -84,7 +84,7 @@ export function LedBoard({ go }: { go: Go }) {
           </div>
           <h1>В'їзне LED-табло</h1>
           <p>
-            Дані з {SPOTS.length * 3} датчиків місць · ті самі, що бачить навігатор. Оновлено о{" "}
+            Дані з {SPOTS.length * 3} датчиків місць · ті самі, що на карті. Оновлено о{" "}
             {hhmm(now)}.
           </p>
         </div>
@@ -166,7 +166,7 @@ export function LedBoard({ go }: { go: Go }) {
         <div>
           <b>Керування потоком (API/JSON → спільні дані)</b>
           <small>
-            «Заїзд» займає випадкове вільне місце, «Виїзд» звільняє. Зміни одразу видно в навігаторі
+            «Заїзд» займає вільне місце, «Виїзд» звільняє. Зміни одразу видно на карті
             та дашборді.
           </small>
         </div>
@@ -184,7 +184,7 @@ export function LedBoard({ go }: { go: Go }) {
         ))}
         <button className="md-btn" onClick={() => go("map")}>
           <Ic d={D.map} />
-          Навігатор
+          Карта паркінгу
         </button>
       </section>
       <section className="md-ticker">
@@ -337,7 +337,7 @@ export function Dashboard({ go }: { go: Go }) {
         <div className="panel-head">
           <div>
             <h2>Заповненість за поверхами</h2>
-            <p>{m.total} місць · натисніть поверх, щоб відкрити його в навігаторі</p>
+            <p>{m.total} місць · натисніть поверх, щоб відкрити його на карті</p>
           </div>
           <span className="live-pill">
             <i /> {park.sim ? "LIVE" : "ПАУЗА"}

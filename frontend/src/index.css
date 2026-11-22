@@ -392,27 +392,6 @@
 .spot.unavailable {
   display: none;
 }
-.walk-route {
-  fill: none;
-  stroke: #2877e8;
-  stroke-width: 5;
-  stroke-dasharray: 8 7;
-  animation: dash 1s linear infinite;
-}
-.route-dot {
-  fill: #fff;
-  stroke: #2877e8;
-  stroke-width: 4;
-}
-.route-dot.target {
-  fill: #2877e8;
-  stroke: white;
-}
-@keyframes dash {
-  to {
-    stroke-dashoffset: -30;
-  }
-}
 .compass,
 .locate {
   position: absolute;
@@ -467,64 +446,6 @@
 }
 .map-legend .occupied {
   background: var(--red);
-}
-.route-card {
-  height: 74px;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-top: 1px solid #e5e9ec;
-}
-.route-card .free-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #dcfce7;
-  color: #149443;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  font-weight: 800;
-}
-.route-card > div {
-  flex: 1;
-}
-.route-card small {
-  font-size: 7px;
-  letter-spacing: 1px;
-  color: #8b96a3;
-  display: block;
-}
-.route-card b {
-  font-size: 11px;
-  display: block;
-  margin-top: 3px;
-}
-.route-card p {
-  font-size: 8px;
-  color: #74808c;
-  margin-top: 2px;
-}
-.route-card > svg {
-  color: #8a95a3;
-}
-.route-card button {
-  border: 0;
-  background: none;
-  color: #84909d;
-}
-.route-card.show {
-  background: #edf9fd;
-}
-.route-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #009fe3;
-  color: white;
-  display: grid;
-  place-items: center;
 }
 
 .led-page,
