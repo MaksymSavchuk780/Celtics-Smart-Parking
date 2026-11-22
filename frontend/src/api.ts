@@ -1,4 +1,4 @@
-export type BackendStatus = "free" | "occupied" | "reserved";
+export type BackendStatus = "free" | "occupied";
 
 export type BackendSpot = {
   id: number;
@@ -8,22 +8,10 @@ export type BackendSpot = {
   status: BackendStatus;
   coordinates: { x: number; y: number };
   led_indicator: {
-    color: "green" | "red" | "blue" | "blink_red";
+    color: "green" | "red";
     hex_color: string;
-    mode: "steady" | "blinking";
+    mode: "steady";
   };
-  current_session: {
-    ticket_uid: string;
-    plate_number: string;
-    entry_time: string;
-    fine_amount: number;
-  } | null;
-  active_reservation: {
-    reservation_id: number;
-    plate_number: string;
-    reserved_from: string;
-    reserved_until: string;
-  } | null;
   last_telemetry_at: string | null;
 };
 
@@ -32,7 +20,6 @@ export type BackendMap = {
     total_spots: number;
     free_spots: number;
     occupied_spots: number;
-    reserved_spots: number;
     is_parking_full: boolean;
     recommended_sector: string | null;
   };
@@ -41,29 +28,9 @@ export type BackendMap = {
     total_spots: number;
     free_spots: number;
     occupied_spots: number;
-    reserved_spots: number;
     is_full: boolean;
   }>;
   spots: BackendSpot[];
-};
-
-export type ReservationRequest = {
-  plate_number: string;
-  spot_code: string;
-  floor: number;
-  reserved_from: string;
-  reserved_until: string;
-};
-
-export type ReservationResponse = {
-  id: number;
-  plate_number: string;
-  spot_code: string;
-  floor: number;
-  reserved_from: string;
-  reserved_until: string;
-  status: string;
-  message: string;
 };
 
 export type SensorEventRequest = {
@@ -77,11 +44,9 @@ export type SensorEventRequest = {
 };
 
 export type SensorEventResponse = {
-  status: "success" | "warning" | "error";
+  status: "success";
   spot_code: string;
-  led_color: "green" | "red" | "blue" | "blink_red";
-  violation_detected: boolean;
-  fine_amount: number;
+  led_color: "green" | "red";
   message: string;
 };
 
@@ -113,17 +78,6 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const getParkingMap = () => apiRequest<BackendMap>("/map");
-
-export const createReservation = (payload: ReservationRequest) =>
-  apiRequest<ReservationResponse>("/reservations", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-export const cancelReservation = (id: number) =>
-  apiRequest<ReservationResponse>(`/reservations/${id}`, {
-    method: "DELETE",
-  });
 
 export const sendSensorEvent = (payload: SensorEventRequest) =>
   apiRequest<SensorEventResponse>("/telemetry/sensor-event", {

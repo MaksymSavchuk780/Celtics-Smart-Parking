@@ -1,10 +1,10 @@
 import { useState } from "react";
 import Home from "./Home";
 import Navigator from "./Navigator";
-import { Booking, Dashboard, LedBoard } from "./Modules";
+import { Dashboard, LedBoard } from "./Modules";
 import { useServerStatus } from "./parking";
 
-type View = "home" | "map" | "led" | "booking" | "dashboard";
+type View = "home" | "map" | "led" | "dashboard";
 
 function Icon({ name, size = 20 }: { name: string; size?: number }) {
   const paths: Record<string, React.ReactNode> = {
@@ -18,13 +18,6 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
       <>
         <rect x="3" y="5" width="18" height="12" rx="2" />
         <path d="M7 9h10M7 13h6M8 17v3M16 17v3" />
-      </>
-    ),
-    calendar: (
-      <>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M16 3v4M8 3v4M3 10h18" />
-        <path d="m9 16 2 2 4-5" />
       </>
     ),
     chart: (
@@ -50,13 +43,6 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
         <path d="M7 14h.01M17 14h.01M6 10h12" />
       </>
     ),
-    route: (
-      <>
-        <circle cx="5" cy="19" r="2" />
-        <circle cx="19" cy="5" r="2" />
-        <path d="M7 19h3a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3h1" />
-      </>
-    ),
     bell: (
       <>
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
@@ -71,12 +57,6 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     close: (
       <>
         <path d="m6 6 12 12M18 6 6 18" />
-      </>
-    ),
-    ticket: (
-      <>
-        <path d="M3 7a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-3a2 2 0 0 0 0-4Z" />
-        <path d="M13 5v2M13 17v2M13 10v4" />
       </>
     ),
     chevron: <path d="m9 18 6-6-6-6" />,
@@ -106,9 +86,8 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
 function AppHeader({ view, setView }: { view: View; setView: (v: View) => void }) {
   const items: { id: View; label: string; icon: string }[] = [
     { id: "home", label: "Головна", icon: "building" },
-    { id: "map", label: "Навігація", icon: "map" },
+    { id: "map", label: "Карта", icon: "map" },
     { id: "led", label: "LED-табло", icon: "led" },
-    { id: "booking", label: "Бронювання", icon: "calendar" },
     { id: "dashboard", label: "B2B-аналітика", icon: "chart" },
   ];
   return (
@@ -146,7 +125,7 @@ export default function App() {
   const server = useServerStatus();
   const initial = new URLSearchParams(window.location.search).get("view") as View;
   const [view, setView] = useState<View>(
-    ["home", "map", "led", "booking", "dashboard"].includes(initial) ? initial : "home",
+    ["home", "map", "led", "dashboard"].includes(initial) ? initial : "home",
   );
   const changeView = (v: View) => {
     setView(v);
@@ -159,7 +138,7 @@ export default function App() {
         <div role={server.error ? "alert" : "status"} style={{ padding: "8px 16px", background: server.error ? "#fee2e2" : "#eff6ff", color: server.error ? "#991b1b" : "#1e3a8a" }}>
           {server.loading
             ? "Завантаження актуальних даних з сервера..."
-            : `Помилка сервера: ${server.error}. Дії бронювання та керування станом недоступні.`}
+            : `Помилка сервера: ${server.error}. Дані паркінгу та керування станом недоступні.`}
         </div>
       )}
       <AppHeader view={view} setView={changeView} />
@@ -169,8 +148,6 @@ export default function App() {
         <Navigator />
       ) : view === "led" ? (
         <LedBoard go={changeView} />
-      ) : view === "booking" ? (
-        <Booking go={changeView} />
       ) : (
         <Dashboard go={changeView} />
       )}

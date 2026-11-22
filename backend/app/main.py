@@ -39,14 +39,6 @@ except ImportError:
         from routers.map import router as map_router
 
 try:
-    from backend.app.routers.reservations import router as reservations_router
-except ImportError:
-    try:
-        from app.routers.reservations import router as reservations_router
-    except ImportError:
-        from routers.reservations import router as reservations_router
-
-try:
     from backend.app.routers.telemetry import router as telemetry_router
 except ImportError:
     try:
@@ -64,7 +56,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Celtics Smart Parking System API",
-    description="Центральне REST API смарт-системи паркінгу ТЦ (Celtics)",
+    description="Parking availability and sensor telemetry for commercial garages.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -86,7 +78,6 @@ app.add_middleware(
 
 # Підключення роутерів API v1
 app.include_router(map_router, prefix="/api/v1")
-app.include_router(reservations_router, prefix="/api/v1")
 app.include_router(telemetry_router, prefix="/api/v1")
 
 
