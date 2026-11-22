@@ -2,6 +2,21 @@
 • Команда «Селтікс»**  
 > Гібридна смарт-система навігації, веб-бронювання та аналітики для паркінгу ТЦ
 
+## Запуск через Docker Compose
+
+На Windows встановіть і запустіть Docker Desktop у режимі Linux-контейнерів. Для типового налаштування з WSL 2 виконайте `wsl --install` у PowerShell від імені адміністратора та перезавантажте комп’ютер. Якщо ваша редакція Windows підтримує Hyper-V, Docker Desktop також можна налаштувати з Hyper-V під час встановлення для всіх користувачів. [Інструкція для Windows](https://docs.docker.com/desktop/setup/install/windows-install/)
+
+З кореня проєкту виконайте одну команду:
+
+```powershell
+docker compose up --build
+```
+
+- Фронтенд: <http://localhost:8443>
+- Swagger UI: <http://localhost:8000/docs>
+
+FastAPI використовує SQLite у файлі `/data/parking.db`. Під час першого запуску бекенд створює базу з демоданими, включно з 294 паркомісцями. Дані зберігаються в томі `parking-data` між перезапусками та після `docker compose down`.
+
 ---
 
 ## 🎯 Суть та мета проєкту

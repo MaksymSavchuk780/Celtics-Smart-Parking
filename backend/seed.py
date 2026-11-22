@@ -9,7 +9,6 @@ Celtics Smart Parking System — Database Seeder Script
 - Журналом порушень зі штрафом +500 грн
 """
 
-import os
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -23,10 +22,10 @@ if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
 try:
-    from backend.app.database import engine, SessionLocal, init_db, drop_db, DEFAULT_DB_FILE
+    from backend.app.database import engine, SessionLocal, init_db, drop_db
     from backend.app.models import ParkingSpot, TicketSession, Reservation, ViolationLog
 except ImportError:
-    from app.database import engine, SessionLocal, init_db, drop_db, DEFAULT_DB_FILE
+    from app.database import engine, SessionLocal, init_db, drop_db
     from app.models import ParkingSpot, TicketSession, Reservation, ViolationLog
 
 
@@ -39,7 +38,7 @@ def seed_database():
     print("=" * 60)
     print("Celtics Smart Parking System • Database Seeder")
     print("=" * 60)
-    print(f"Цільова база даних: {DEFAULT_DB_FILE}")
+    print(f"Цільова база даних: {engine.url.database}")
 
     # 1. Створення таблиць
     print("-> Очищення та створення структури таблиць (DDL)...")
