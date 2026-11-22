@@ -7,7 +7,7 @@ Celtics Smart Parking System — Database Engine
 import os
 import sys
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 APP_DIR = Path(__file__).resolve().parent
@@ -18,7 +18,7 @@ for p in (PROJECT_ROOT, BACKEND_DIR, APP_DIR):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-DEFAULT_DB_FILE = PROJECT_ROOT / "parking.db"
+DEFAULT_DB_FILE = PROJECT_ROOT / "parking-mvp.db"
 
 # Підтримка змінної оточення DATABASE_URL (зручно для PostgreSQL або локального SQLite)
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_FILE.as_posix()}")
@@ -47,7 +47,7 @@ def get_db():
 
 
 def init_db():
-    """Створення всіх таблиць у базі даних згідно з ORM-моделями"""
+    """Initialize the MVP schema without altering a database from the full prototype."""
     try:
         from backend.app import models  # noqa: F401
     except ImportError:
@@ -55,16 +55,7 @@ def init_db():
             from app import models  # noqa: F401
         except ImportError:
             import models  # noqa: F401
+    previous_tables = {"reservations", "violations_log", "tickets_sessions"}
+    if previous_tables.intersection(inspect(engine).get_table_names()):
+        raise RuntimeError("This database belongs to the full prototype. Set DATABASE_URL to a separate MVP database.")
     Base.metadata.create_all(bind=engine)
-
-
-def drop_db():
-    """Очищення всіх таблиць бази даних"""
-    try:
-        from backend.app import models  # noqa: F401
-    except ImportError:
-        try:
-            from app import models  # noqa: F401
-        except ImportError:
-            import models  # noqa: F401
-    Base.metadata.drop_all(bind=engine)

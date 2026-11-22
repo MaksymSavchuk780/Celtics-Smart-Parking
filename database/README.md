@@ -1,7 +1,8 @@
-# 🗄️ Celtics Parking System — Database Schemas
+# Parking database
 
-Розробник: **Савчук** (Backend / Database Engineer)
+The MVP stores floor, sector, map coordinates, and the current occupancy of each space in SQLite. A space code is unique within its floor. Each space is either `free` or `occupied`.
 
-## 📁 Файли:
-* [`schema.dbml`](schema.dbml) — код мови розмітки DBML для миттєвого відображення схеми на сайті [dbdiagram.io](https://dbdiagram.io).
-* [`schema.sql`](schema.sql) — чистий SQL DDL для створення 4 таблиць (`parking_spots`, `tickets_sessions`, `reservations`, `violations_log`) та індексів у PostgreSQL або SQLite.
+- [SQLite schema](schema.sql) for creating the `parking_spots` table.
+- [DBML diagram source](schema.dbml) for the same schema.
+
+The backend creates the schema on startup. Docker stores the MVP database in the `parking-mvp-data` volume. Running the backend directly uses `parking-mvp.db` in the repository root by default.

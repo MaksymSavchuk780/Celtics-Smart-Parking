@@ -29,28 +29,15 @@ def sensor_event(payload: SensorTelemetryRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=422, detail="floor is required when spot_code exists on multiple floors")
     spot = spots[0]
 
-    active_reservation = next(
-        (reservation for reservation in spot.reservations if reservation.status == "active"),
-        None,
-    )
-
-    violation_detected = False
-    fine_amount = 0.0
-    if payload.is_occupied or payload.raw_state == 1:
-        spot.status = "occupied"
-    else:
-        spot.status = "reserved" if active_reservation is not None else "free"
-
+    occupied = payload.is_occupied or payload.raw_state == 1
+    spot.status = "occupied" if occupied else "free"
     spot.updated_at = utc_now()
+    spot_code = spot.spot_code
     db.commit()
-    db.refresh(spot)
 
-    led_color = "red" if payload.is_occupied else ("blue" if spot.status == "reserved" else "green")
     return SensorTelemetryResponse(
         status="success",
-        spot_code=spot.spot_code,
-        led_color=led_color,
-        violation_detected=violation_detected,
-        fine_amount=fine_amount,
+        spot_code=spot_code,
+        led_color="red" if occupied else "green",
         message="Telemetry accepted and parking state updated",
     )

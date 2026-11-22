@@ -1,12 +1,16 @@
 ﻿// Прошивка ESP32: 2 ультразвукові датчики HC-SR04 + 2 RGB LED (2 паркомісця).
 // Вимір відстані кожні 1000 мс -> визначення статусу (вільно / зайнято).
 // Розумна телеметрія: негайний HTTP POST при зміні стану + periodic heartbeat (10 с).
-// Синхронізація з бекендом: підтримка кольорів RGB LED (green, red, blue для броні, blink_red для порушень).
+// Green means free and red means occupied.
 // Неблокуюче підключення Wi-Fi без зависання вимірювань сенсорів.
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
 #include "config.h"
+
+#ifndef PARKING_FLOOR
+#define PARKING_FLOOR 1
+#endif
 
 const uint32_t MEASURE_INTERVAL_MS = 1000;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000;  // Раз на 10 с, якщо стан не змінювався
@@ -16,12 +20,7 @@ const float SOUND_SPEED_CM_PER_US = 0.0343;   // 343 м/с
 const unsigned long ECHO_TIMEOUT_US = 25000;  // ~4 м туди й назад
 const uint16_t HTTP_TIMEOUT_MS = 600;         // Таймаут для REST API запиту
 
-enum LedMode {
-  LED_GREEN,
-  LED_RED,
-  LED_BLUE,
-  LED_BLINK_RED
-};
+enum LedMode { LED_GREEN, LED_RED };
 
 struct ParkingSpot {
   const char* spotCode;
@@ -46,39 +45,13 @@ ParkingSpot spots[] = {
 const size_t SPOT_COUNT = sizeof(spots) / sizeof(spots[0]);
 
 uint32_t lastMeasureMs = 0;
-uint32_t lastBlinkMs = 0;
-bool blinkPhase = false;
 uint32_t lastWifiAttemptMs = 0;
 
 // Апаратне перемикання кольору RGB-світлодіода
-void applyLedPins(const ParkingSpot& s, LedMode mode, bool phase) {
-  switch (mode) {
-    case LED_GREEN:
-      digitalWrite(s.redPin, LOW);
-      digitalWrite(s.greenPin, HIGH);
-      digitalWrite(s.bluePin, LOW);
-      break;
-    case LED_RED:
-      digitalWrite(s.redPin, HIGH);
-      digitalWrite(s.greenPin, LOW);
-      digitalWrite(s.bluePin, LOW);
-      break;
-    case LED_BLUE:
-      digitalWrite(s.redPin, LOW);
-      digitalWrite(s.greenPin, LOW);
-      digitalWrite(s.bluePin, HIGH);
-      break;
-    case LED_BLINK_RED:
-      digitalWrite(s.redPin, phase ? HIGH : LOW);
-      digitalWrite(s.greenPin, LOW);
-      digitalWrite(s.bluePin, LOW);
-      break;
-  }
-}
-
-// Оновлення фізичного стану світлодіода для місця
-void updateLed(ParkingSpot& s) {
-  applyLedPins(s, s.currentLed, blinkPhase);
+void updateLed(const ParkingSpot& s) {
+  digitalWrite(s.redPin, s.currentLed == LED_RED ? HIGH : LOW);
+  digitalWrite(s.greenPin, s.currentLed == LED_GREEN ? HIGH : LOW);
+  digitalWrite(s.bluePin, LOW);
 }
 
 // Вимір відстані ультразвуковим датчиком HC-SR04
@@ -112,11 +85,7 @@ void maintainWifi() {
 
 // Парсинг кольору світлодіода з відповіді бекенду
 LedMode parseLedColorFromResponse(const String& response, bool localOccupied) {
-  if (response.indexOf("\"blink_red\"") >= 0) {
-    return LED_BLINK_RED;
-  } else if (response.indexOf("\"blue\"") >= 0) {
-    return LED_BLUE;
-  } else if (response.indexOf("\"red\"") >= 0) {
+  if (response.indexOf("\"red\"") >= 0) {
     return LED_RED;
   } else if (response.indexOf("\"green\"") >= 0) {
     return LED_GREEN;
@@ -136,10 +105,10 @@ bool sendStatus(ParkingSpot& s, float distanceCm) {
 
   char body[320];
   snprintf(body, sizeof(body),
-           "{\"device_id\":\"%s\",\"spot_code\":\"%s\",\"distance_cm\":%.1f,"
+           "{\"device_id\":\"%s\",\"spot_code\":\"%s\",\"floor\":%d,\"distance_cm\":%.1f,"
            "\"detection_threshold_cm\":%.1f,\"raw_state\":%d,\"is_occupied\":%s,"
            "\"uptime_sec\":%lu,\"timestamp\":%lu}",
-           DEVICE_ID, s.spotCode, distanceCm, DETECTION_THRESHOLD_CM,
+           DEVICE_ID, s.spotCode, PARKING_FLOOR, distanceCm, DETECTION_THRESHOLD_CM,
            s.isOccupied ? 1 : 0, s.isOccupied ? "true" : "false",
            (unsigned long)(millis() / 1000), (unsigned long)time(nullptr));
 
@@ -155,7 +124,7 @@ bool sendStatus(ParkingSpot& s, float distanceCm) {
     String response = http.getString();
     http.end();
 
-    // Застосовуємо команду підсвічування від сервера (бронь, тривога, або вільне/зайняте)
+    // Apply the occupancy indicator returned by the server.
     s.currentLed = parseLedColorFromResponse(response, s.isOccupied);
     updateLed(s);
 
@@ -167,8 +136,6 @@ bool sendStatus(ParkingSpot& s, float distanceCm) {
                   s.spotCode, distanceCm,
                   s.isOccupied ? "OCCUPIED" : "FREE",
                   code,
-                  s.currentLed == LED_BLUE ? "BLUE (RESERVED)" :
-                  s.currentLed == LED_BLINK_RED ? "BLINK RED (VIOLATION)" :
                   s.currentLed == LED_RED ? "RED" : "GREEN");
     return true;
   } else {
@@ -218,19 +185,8 @@ void setup() {
 void loop() {
   maintainWifi();
 
-  // 1. Асинхронне миготіння тривоги (якщо для якогось місця активний режим LED_BLINK_RED)
   uint32_t now = millis();
-  if (now - lastBlinkMs >= 400) {
-    lastBlinkMs = now;
-    blinkPhase = !blinkPhase;
-    for (size_t i = 0; i < SPOT_COUNT; i++) {
-      if (spots[i].currentLed == LED_BLINK_RED) {
-        updateLed(spots[i]);
-      }
-    }
-  }
-
-  // 2. Періодичний вимір датчиками HC-SR04
+  // Check HC-SR04 sensors at the configured measurement interval.
   if (now - lastMeasureMs < MEASURE_INTERVAL_MS) return;
   lastMeasureMs = now;
 
