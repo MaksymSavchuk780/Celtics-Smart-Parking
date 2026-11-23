@@ -6,7 +6,7 @@ services:
     volumes:
       - parking-mvp-data:/data
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=2).close()"]
       interval: 5s
@@ -20,7 +20,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8443:80"
+      - "8443:80"
 
 volumes:
   parking-mvp-data:
