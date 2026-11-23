@@ -29,10 +29,7 @@ With the MVP branch checked out, start the services from the repository root.
 docker compose up --build -d --wait
 ```
 
-- [Home](http://localhost:8443/)
-- [Parking map](http://localhost:8443/?view=map)
-- [Entrance display](http://localhost:8443/?view=led)
-- [Occupancy dashboard](http://localhost:8443/?view=dashboard)
+- [website](https://celticssmartparking.tech/)
 - [Swagger UI](http://localhost:8000/docs)
 
 On first startup, SQLite is seeded with 294 demo spaces across three levels. The map shows the entire selected level. Select a space to see its current status. To simulate an arrival or departure without hardware, use the **−** and **+** buttons on the entrance display.
