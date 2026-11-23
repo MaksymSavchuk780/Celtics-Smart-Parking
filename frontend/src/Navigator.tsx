@@ -25,7 +25,21 @@ const statusLabel: Record<Status, string> = {
 
 export default function Navigator() {
   const { statuses } = usePark();
-  const [floor, setFloor] = useState<FloorId>("P1");
+  const initialFloorParam = new URLSearchParams(window.location.search).get("floor");
+  const floorParamMap: Record<string, FloorId> = {
+    "-1": "P-1",
+    "P-1": "P-1",
+    "p-1": "P-1",
+    "1": "P1",
+    "P1": "P1",
+    "p1": "P1",
+    "2": "P2",
+    "P2": "P2",
+    "p2": "P2",
+  };
+  const [floor, setFloor] = useState<FloorId>(
+    (initialFloorParam && floorParamMap[initialFloorParam]) || "P1"
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const layout = useSyncExternalStore(watchLayout, getLayout);
   const portrait = layout === "portrait";

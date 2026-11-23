@@ -13,6 +13,14 @@ body:has(.view-map) {
   flex: none;
 }
 
+.app.standalone-mode {
+  padding-top: 0;
+}
+
+.app.standalone-mode .nv {
+  width: min(100%, 1120px, max(480px, calc(100dvh * 1.05 + 36px)));
+}
+
 .nv {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;

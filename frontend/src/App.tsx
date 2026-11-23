@@ -123,17 +123,23 @@ function AppHeader({ view, setView }: { view: View; setView: (v: View) => void }
 
 export default function App() {
   const server = useServerStatus();
-  const initial = new URLSearchParams(window.location.search).get("view") as View;
+  const searchParams = new URLSearchParams(window.location.search);
+  const isStandalone =
+    searchParams.get("standalone") === "true" ||
+    searchParams.get("mode") === "zeroapp" ||
+    searchParams.get("zeroapp") === "true";
+  const initial = searchParams.get("view") as View;
   const [view, setView] = useState<View>(
-    ["home", "map", "led", "dashboard"].includes(initial) ? initial : "home",
+    isStandalone ? "map" : ["home", "map", "led", "dashboard"].includes(initial) ? initial : "home",
   );
   const changeView = (v: View) => {
+    if (isStandalone) return;
     setView(v);
     window.history.replaceState({}, "", v === "home" ? window.location.pathname : `?view=${v}`);
     window.scrollTo({ top: 0 });
   };
   return (
-    <div className={`app view-${view}`}>
+    <div className={`app view-${isStandalone ? "map" : view} ${isStandalone ? "standalone-mode" : ""}`}>
       {(server.loading || server.error) && (
         <div role={server.error ? "alert" : "status"} style={{ padding: "8px 16px", background: server.error ? "#fee2e2" : "#eff6ff", color: server.error ? "#991b1b" : "#1e3a8a" }}>
           {server.loading
@@ -141,8 +147,10 @@ export default function App() {
             : `Помилка сервера: ${server.error}. Дані паркінгу та керування станом недоступні.`}
         </div>
       )}
-      <AppHeader view={view} setView={changeView} />
-      {view === "home" ? (
+      {!isStandalone && <AppHeader view={view} setView={changeView} />}
+      {isStandalone ? (
+        <Navigator />
+      ) : view === "home" ? (
         <Home go={changeView} />
       ) : view === "map" ? (
         <Navigator />
